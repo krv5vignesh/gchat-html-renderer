@@ -1,17 +1,5 @@
 // --- UTILITIES ---
 
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
 // --- UI COMPONENTS ---
 
 function getOpenInNewTabSvg() {
@@ -123,11 +111,12 @@ function replaceHtmlTextWithIframe() {
 
 // --- OBSERVER ---
 
-// Debounce the observer by 150ms to prevent browser lag during typing/rendering
-const debouncedReplace = debounce(replaceHtmlTextWithIframe, 150);
+// Use requestAnimationFrame instead of setTimeout.
+// This batches mutations for performance but executes BEFORE the browser paints,
+// completely eliminating the "visual flash" of raw text.
+let isScheduled = false;
 
 const observer = new MutationObserver((mutations) => {
-    // Basic optimization: only trigger if nodes were actually added
     let hasAddedNodes = false;
     for (const mutation of mutations) {
         if (mutation.addedNodes.length > 0) {
@@ -136,10 +125,14 @@ const observer = new MutationObserver((mutations) => {
         }
     }
     
-    if (hasAddedNodes) {
-        debouncedReplace();
+    if (hasAddedNodes && !isScheduled) {
+        isScheduled = true;
+        requestAnimationFrame(() => {
+            replaceHtmlTextWithIframe();
+            isScheduled = false;
+        });
     }
 });
 
 observer.observe(document.body, { childList: true, subtree: true });
-debouncedReplace();
+replaceHtmlTextWithIframe();
