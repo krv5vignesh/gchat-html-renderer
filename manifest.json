@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Google Chat HTML Renderer",
+  "version": "1.0",
+  "description": "Automatically renders raw HTML attachments inside the Google Chat file viewer.",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chat.google.com/*",
+        "https://mail.google.com/chat/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}
