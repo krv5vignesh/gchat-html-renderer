@@ -1,13 +1,17 @@
 // --- UI COMPONENTS ---
 
 function openInNewTab(text) {
-    const newWin = window.open('', '_blank');
-    if (newWin) {
-        newWin.document.write(text);
-        newWin.document.close();
-    } else {
-        alert('Please allow popups to open the report in a new tab.');
-    }
+    // Generate a unique ID for this report
+    const id = 'html_report_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    
+    // Store it in local storage temporarily
+    chrome.storage.local.set({ [id]: text }, () => {
+        const url = chrome.runtime.getURL(`viewer.html?id=${id}`);
+        const newWin = window.open(url, '_blank');
+        if (!newWin) {
+            alert('Please allow popups to open the report in a new tab.');
+        }
+    });
 }
 
 // --- MAIN LOGIC ---
