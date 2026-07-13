@@ -86,6 +86,10 @@ function replaceHtmlTextWithIframe() {
             const iframe = document.createElement('iframe');
             iframe.srcdoc = text;
             
+            // CRITICAL SECURITY FIX: Sandbox the iframe so uploaded HTML 
+            // cannot access the parent page's cookies or DOM (XSS protection).
+            iframe.sandbox = 'allow-scripts';
+            
             Object.assign(iframe.style, {
                 width: 'calc(100% - 48px)',
                 height: 'calc(100vh - 88px)',
