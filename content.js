@@ -86,10 +86,11 @@ function replaceHtmlTextWithIframe() {
             openBtn.onclick = () => openInNewTab(text);
             openBtn._linkedElement = el;
 
-            // 2. Create the secure Iframe
+            // 2. Create the secure Iframe using our extension sandbox
+            // This safely bypasses Google Chat's strict CSP blocking inline scripts,
+            // while utilizing the highly secure Chrome Extension sandbox mechanism.
             const iframe = document.createElement('iframe');
-            iframe.srcdoc = text;
-            iframe.sandbox = 'allow-scripts'; // CRITICAL SECURITY FIX
+            iframe.src = chrome.runtime.getURL('sandbox.html');
             Object.assign(iframe.style, {
                 flexGrow: '1',
                 border: 'none',
@@ -97,6 +98,11 @@ function replaceHtmlTextWithIframe() {
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                 backgroundColor: 'white'
             });
+            
+            // Wait for our sandboxed page to load, then securely transmit the HTML text
+            iframe.onload = () => {
+                iframe.contentWindow.postMessage({ type: 'RENDER_HTML', html: text }, '*');
+            };
             
             wrapper.appendChild(iframe);
             el.appendChild(wrapper);

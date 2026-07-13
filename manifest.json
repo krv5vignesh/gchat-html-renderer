@@ -13,6 +13,18 @@
       "run_at": "document_idle"
     }
   ],
+  "sandbox": {
+    "pages": ["sandbox.html"]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["sandbox.html"],
+      "matches": [
+        "https://chat.google.com/*",
+        "https://mail.google.com/*"
+      ]
+    }
+  ],
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
