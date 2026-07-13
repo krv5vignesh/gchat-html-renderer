@@ -45,40 +45,46 @@ function replaceHtmlTextWithIframe() {
             });
 
             // 1. Create the Open in New Tab Button
-            // We place this INSIDE our wrapper so it's lifecycle-managed by the modal (dies when closed),
-            // but we use 'position: fixed' to float it exactly over Google Chat's native header!
-            const openBtn = document.createElement('button');
-            openBtn.title = 'Open in New Tab';
-            openBtn.innerHTML = `
-                <svg focusable="false" width="24" height="24" viewBox="0 0 24 24">
-                    <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"></path>
-                </svg>
-            `;
+            // We append this directly to document.body. If it's inside the wrapper, 
+            // Google Chat's native header creates a stacking context that intercepts the clicks!
+            let openBtn = document.getElementById('gchat-html-new-tab-btn');
+            if (!openBtn) {
+                openBtn = document.createElement('button');
+                openBtn.id = 'gchat-html-new-tab-btn';
+                openBtn.title = 'Open in New Tab';
+                openBtn.innerHTML = `
+                    <svg focusable="false" width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"></path>
+                    </svg>
+                `;
+                
+                Object.assign(openBtn.style, {
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'rgba(255, 255, 255, 0.71)',
+                    cursor: 'pointer',
+                    padding: '8px',
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxSizing: 'border-box',
+                    position: 'fixed',
+                    top: '12px',
+                    right: '160px',
+                    zIndex: '999999'
+                });
+                
+                openBtn.onmouseover = () => openBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                openBtn.onmouseout = () => openBtn.style.backgroundColor = 'transparent';
+                document.body.appendChild(openBtn);
+            }
             
-            Object.assign(openBtn.style, {
-                background: 'transparent',
-                border: 'none',
-                color: 'rgba(255, 255, 255, 0.71)',
-                cursor: 'pointer',
-                padding: '8px',
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxSizing: 'border-box',
-                position: 'fixed',
-                top: '12px',
-                right: '160px',
-                zIndex: '999999'
-            });
-            
-            openBtn.onmouseover = () => openBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-            openBtn.onmouseout = () => openBtn.style.backgroundColor = 'transparent';
+            // Assign functionality and link to the modal container for lifecycle management
             openBtn.onclick = () => openInNewTab(text);
-            
-            wrapper.appendChild(openBtn);
+            openBtn._linkedElement = el;
 
             // 2. Create the secure Iframe
             const iframe = document.createElement('iframe');
@@ -103,10 +109,14 @@ function replaceHtmlTextWithIframe() {
 // --- OBSERVER ---
 
 // A dead-simple, synchronous observer. 
-// We drop the debounce/requestAnimationFrame complexity because our fast-fail 
-// DOM query executes in <1ms and does not actually cause browser lag.
 const observer = new MutationObserver(() => {
     replaceHtmlTextWithIframe();
+    
+    // Lifecycle management: Destroy the button if its parent modal is closed
+    const btn = document.getElementById('gchat-html-new-tab-btn');
+    if (btn && btn._linkedElement && !document.body.contains(btn._linkedElement)) {
+        btn.remove();
+    }
 });
 
 observer.observe(document.body, { childList: true, subtree: true });
