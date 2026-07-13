@@ -7,46 +7,55 @@ function getOpenInNewTabSvg() {
 }
 
 function addOpenInNewTabButton(text, retryCount = 0) {
-    if (document.getElementById('gchat-html-new-tab-btn')) {
-        document.getElementById('gchat-html-new-tab-btn').onclick = () => openInNewTab(text);
-        return;
+    // Google Chat's SPA keeps old, hidden modals in the DOM. 
+    // We must find the native button that is ACTUALLY visible on the screen right now.
+    const nativeBtns = document.querySelectorAll('[aria-label*="Download" i], [aria-label*="Print" i], [aria-label*="Drive" i]');
+    let activeNativeBtn = null;
+    
+    for (const btn of nativeBtns) {
+        if (btn.offsetWidth > 0 || btn.offsetHeight > 0) {
+            activeNativeBtn = btn;
+            break;
+        }
     }
 
-    // Google Chat might render the HTML text a few milliseconds before the top header UI.
-    const nativeBtn = document.querySelector('[aria-label*="Download" i], [aria-label*="Print" i], [aria-label*="Drive" i]');
-    
-    if (nativeBtn && nativeBtn.parentNode) {
-        const openBtn = document.createElement('button');
-        openBtn.id = 'gchat-html-new-tab-btn';
-        openBtn.title = 'Open in New Tab';
-        openBtn.innerHTML = getOpenInNewTabSvg();
+    if (activeNativeBtn && activeNativeBtn.parentNode) {
+        let openBtn = document.getElementById('gchat-html-new-tab-btn');
         
-        // Pixel-perfect manual styling matching Google's 40x40 icon buttons
-        Object.assign(openBtn.style, {
-            background: 'transparent',
-            border: 'none',
-            color: 'rgba(255, 255, 255, 0.71)',
-            cursor: 'pointer',
-            padding: '8px',
-            width: '40px',
-            height: '40px',
-            margin: '0 4px',
-            borderRadius: '50%',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxSizing: 'border-box',
-            verticalAlign: 'middle'
-        });
-        
-        openBtn.onmouseover = () => openBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-        openBtn.onmouseout = () => openBtn.style.backgroundColor = 'transparent';
+        if (!openBtn) {
+            openBtn = document.createElement('button');
+            openBtn.id = 'gchat-html-new-tab-btn';
+            openBtn.title = 'Open in New Tab';
+            openBtn.innerHTML = getOpenInNewTabSvg();
+            
+            Object.assign(openBtn.style, {
+                background: 'transparent',
+                border: 'none',
+                color: 'rgba(255, 255, 255, 0.71)',
+                cursor: 'pointer',
+                padding: '8px',
+                width: '40px',
+                height: '40px',
+                margin: '0 4px',
+                borderRadius: '50%',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxSizing: 'border-box',
+                verticalAlign: 'middle'
+            });
+            
+            openBtn.onmouseover = () => openBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+            openBtn.onmouseout = () => openBtn.style.backgroundColor = 'transparent';
+        }
         
         openBtn.onclick = () => openInNewTab(text);
         
-        nativeBtn.parentNode.insertBefore(openBtn, nativeBtn);
+        // If the button isn't already inside this specific header, move it there
+        if (openBtn.parentNode !== activeNativeBtn.parentNode) {
+            activeNativeBtn.parentNode.insertBefore(openBtn, activeNativeBtn);
+        }
     } else if (retryCount < 20) {
-        // Retry every 50ms (up to 1 second) to wait for the native header to render
         setTimeout(() => addOpenInNewTabButton(text, retryCount + 1), 50);
     }
 }
