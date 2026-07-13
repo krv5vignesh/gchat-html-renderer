@@ -6,52 +6,48 @@ function getOpenInNewTabSvg() {
     return `<svg focusable="false" width="24" height="24" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" fill="currentColor"></path></svg>`;
 }
 
-function addOpenInNewTabButton(text) {
+function addOpenInNewTabButton(text, retryCount = 0) {
     if (document.getElementById('gchat-html-new-tab-btn')) {
         document.getElementById('gchat-html-new-tab-btn').onclick = () => openInNewTab(text);
         return;
     }
 
-    const openBtn = document.createElement('button');
-    openBtn.id = 'gchat-html-new-tab-btn';
-    openBtn.title = 'Open in New Tab';
-    openBtn.innerHTML = getOpenInNewTabSvg();
-    
-    // Pixel-perfect manual styling matching Google's 40x40 icon buttons
-    Object.assign(openBtn.style, {
-        background: 'transparent',
-        border: 'none',
-        color: 'rgba(255, 255, 255, 0.71)',
-        cursor: 'pointer',
-        padding: '8px',
-        width: '40px',
-        height: '40px',
-        margin: '0 4px',
-        borderRadius: '50%',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxSizing: 'border-box',
-        verticalAlign: 'middle'
-    });
-    
-    openBtn.onmouseover = () => openBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-    openBtn.onmouseout = () => openBtn.style.backgroundColor = 'transparent';
-    
-    openBtn.onclick = () => openInNewTab(text);
-
+    // Google Chat might render the HTML text a few milliseconds before the top header UI.
     const nativeBtn = document.querySelector('[aria-label*="Download" i], [aria-label*="Print" i], [aria-label*="Drive" i]');
     
     if (nativeBtn && nativeBtn.parentNode) {
-        nativeBtn.parentNode.insertBefore(openBtn, nativeBtn);
-    } else {
+        const openBtn = document.createElement('button');
+        openBtn.id = 'gchat-html-new-tab-btn';
+        openBtn.title = 'Open in New Tab';
+        openBtn.innerHTML = getOpenInNewTabSvg();
+        
+        // Pixel-perfect manual styling matching Google's 40x40 icon buttons
         Object.assign(openBtn.style, {
-            position: 'fixed',
-            top: '12px',
-            right: '160px',
-            zIndex: '999999'
+            background: 'transparent',
+            border: 'none',
+            color: 'rgba(255, 255, 255, 0.71)',
+            cursor: 'pointer',
+            padding: '8px',
+            width: '40px',
+            height: '40px',
+            margin: '0 4px',
+            borderRadius: '50%',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxSizing: 'border-box',
+            verticalAlign: 'middle'
         });
-        document.body.appendChild(openBtn);
+        
+        openBtn.onmouseover = () => openBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+        openBtn.onmouseout = () => openBtn.style.backgroundColor = 'transparent';
+        
+        openBtn.onclick = () => openInNewTab(text);
+        
+        nativeBtn.parentNode.insertBefore(openBtn, nativeBtn);
+    } else if (retryCount < 20) {
+        // Retry every 50ms (up to 1 second) to wait for the native header to render
+        setTimeout(() => addOpenInNewTabButton(text, retryCount + 1), 50);
     }
 }
 
