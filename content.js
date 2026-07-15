@@ -119,23 +119,32 @@ function replaceHtmlTextWithIframe() {
             // 2. Create the secure Iframe using our extension sandbox
             // This safely bypasses Google Chat's strict CSP blocking inline scripts,
             // while utilizing the highly secure Chrome Extension sandbox mechanism.
-            const iframe = document.createElement('iframe');
-            iframe.src = chrome.runtime.getURL('sandbox.html');
-            Object.assign(iframe.style, {
-                flexGrow: '1',
-                border: 'none',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                backgroundColor: 'white'
-            });
-            
-            // Wait for our sandboxed page to load, then securely transmit the HTML text
-            iframe.onload = () => {
-                iframe.contentWindow.postMessage({ type: 'RENDER_HTML', html: text }, '*');
-            };
-            
-            wrapper.appendChild(iframe);
-            el.appendChild(wrapper);
+            try {
+                const iframe = document.createElement('iframe');
+                iframe.src = chrome.runtime.getURL('sandbox.html');
+                Object.assign(iframe.style, {
+                    flexGrow: '1',
+                    border: 'none',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    backgroundColor: 'white'
+                });
+                
+                // Wait for our sandboxed page to load, then securely transmit the HTML text
+                iframe.onload = () => {
+                    iframe.contentWindow.postMessage({ type: 'RENDER_HTML', html: text }, '*');
+                };
+                
+                wrapper.appendChild(iframe);
+                el.appendChild(wrapper);
+            } catch (e) {
+                if (e.message.includes('Extension context invalidated')) {
+                    wrapper.innerHTML = '<div style="padding: 20px; font-family: sans-serif; color: #d93025; background: white; height: 100%;"><strong>Extension Updated</strong><br><br>The HTML Renderer extension was updated in the background. Please refresh this Google Chat tab to continue viewing reports.</div>';
+                    el.appendChild(wrapper);
+                } else {
+                    console.error('Error creating iframe:', e);
+                }
+            }
             
             break; // Stop after finding the valid block
         }
