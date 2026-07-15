@@ -26,17 +26,17 @@ if (id) {
             downloadBtn.innerText = 'Save as HTML';
             Object.assign(downloadBtn.style, {
                 position: 'fixed',
-                top: '15px',
-                right: '25px',
-                padding: '8px 16px',
+                bottom: '30px',
+                right: '30px',
+                padding: '10px 20px',
                 backgroundColor: '#1a73e8',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: '5px',
                 cursor: 'pointer',
                 fontFamily: 'sans-serif',
                 fontSize: '14px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
                 zIndex: '9999'
             });
             downloadBtn.onclick = () => {
