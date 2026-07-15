@@ -98,25 +98,27 @@ function replaceHtmlTextWithIframe() {
             openBtn.onclick = () => openInNewTab(text);
             openBtn._linkedElement = el;
 
-            // 2. Create the secure Iframe using our extension sandbox
-            // This safely bypasses Google Chat's strict CSP blocking inline scripts,
-            // while utilizing the highly secure Chrome Extension sandbox mechanism.
-            const iframe = document.createElement('iframe');
-            iframe.src = chrome.runtime.getURL('sandbox.html');
-            Object.assign(iframe.style, {
+            // 2. Render using Shadow DOM
+            // Instead of an iframe (which breaks focus and the Escape key due to cross-origin security),
+            // we use a Shadow DOM. This provides 100% perfect CSS isolation so the report's styles
+            // don't leak into Google Chat, while keeping the element in the main document.
+            // This allows Google Chat's native Escape listener to work perfectly with zero hacks!
+            // Note: Inline scripts will not execute here due to Google Chat's CSP, but they will execute 
+            // when the user clicks 'Open in New Tab'.
+            const shadowHost = document.createElement('div');
+            Object.assign(shadowHost.style, {
                 flexGrow: '1',
                 border: 'none',
                 borderRadius: '8px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                backgroundColor: 'white'
+                backgroundColor: 'white',
+                overflow: 'auto'
             });
             
-            // Wait for our sandboxed page to load, then securely transmit the HTML text
-            iframe.onload = () => {
-                iframe.contentWindow.postMessage({ type: 'RENDER_HTML', html: text }, '*');
-            };
+            const shadow = shadowHost.attachShadow({ mode: 'open' });
+            shadow.innerHTML = text;
             
-            wrapper.appendChild(iframe);
+            wrapper.appendChild(shadowHost);
             el.appendChild(wrapper);
             
             break; // Stop after finding the valid block

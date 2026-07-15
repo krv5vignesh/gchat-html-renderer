@@ -25,19 +25,20 @@ if (id) {
             const downloadBtn = document.createElement('button');
             downloadBtn.innerText = 'Save as HTML';
             Object.assign(downloadBtn.style, {
-                position: 'fixed',
-                bottom: '30px',
-                right: '30px',
-                padding: '10px 20px',
-                backgroundColor: '#1a73e8',
-                color: 'white',
-                border: 'none',
+                position: 'fixed', 
+                bottom: '30px', 
+                right: '30px', 
+                width: '130px',
+                padding: '10px 0', 
+                backgroundColor: '#ECECFF', 
+                color: '#1f0909',
+                border: '1px solid #9370DB', 
                 borderRadius: '5px',
-                cursor: 'pointer',
-                fontFamily: 'sans-serif',
-                fontSize: '14px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                zIndex: '9999'
+                cursor: 'pointer', 
+                zIndex: '10000', 
+                textAlign: 'center',
+                fontFamily: '"PT Serif", serif', 
+                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
             });
             downloadBtn.onclick = () => {
                 const blob = new Blob([text], { type: 'text/html' });
