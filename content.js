@@ -98,27 +98,25 @@ function replaceHtmlTextWithIframe() {
             openBtn.onclick = () => openInNewTab(text);
             openBtn._linkedElement = el;
 
-            // 2. Render using Shadow DOM
-            // Instead of an iframe (which breaks focus and the Escape key due to cross-origin security),
-            // we use a Shadow DOM. This provides 100% perfect CSS isolation so the report's styles
-            // don't leak into Google Chat, while keeping the element in the main document.
-            // This allows Google Chat's native Escape listener to work perfectly with zero hacks!
-            // Note: Inline scripts will not execute here due to Google Chat's CSP, but they will execute 
-            // when the user clicks 'Open in New Tab'.
-            const shadowHost = document.createElement('div');
-            Object.assign(shadowHost.style, {
+            // 2. Create the secure Iframe using our extension sandbox
+            // This safely bypasses Google Chat's strict CSP blocking inline scripts,
+            // while utilizing the highly secure Chrome Extension sandbox mechanism.
+            const iframe = document.createElement('iframe');
+            iframe.src = chrome.runtime.getURL('sandbox.html');
+            Object.assign(iframe.style, {
                 flexGrow: '1',
                 border: 'none',
                 borderRadius: '8px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                backgroundColor: 'white',
-                overflow: 'auto'
+                backgroundColor: 'white'
             });
             
-            const shadow = shadowHost.attachShadow({ mode: 'open' });
-            shadow.innerHTML = text;
+            // Wait for our sandboxed page to load, then securely transmit the HTML text
+            iframe.onload = () => {
+                iframe.contentWindow.postMessage({ type: 'RENDER_HTML', html: text }, '*');
+            };
             
-            wrapper.appendChild(shadowHost);
+            wrapper.appendChild(iframe);
             el.appendChild(wrapper);
             
             break; // Stop after finding the valid block
@@ -141,3 +139,45 @@ const observer = new MutationObserver(() => {
 
 observer.observe(document.body, { childList: true, subtree: true });
 replaceHtmlTextWithIframe();
+
+function closeGChatViewer() {
+    // 1. Try to cleanly click the Close button using a bulletproof selector
+    const dialogs = document.querySelectorAll('div[role="dialog"]');
+    const viewer = dialogs[dialogs.length - 1]; // The active viewer is usually the last dialog
+    
+    if (viewer) {
+        // Find ALL buttons inside the viewer
+        const buttons = viewer.querySelectorAll('button, div[role="button"]');
+        for (const btn of buttons) {
+            const label = (btn.getAttribute('aria-label') || '').toLowerCase();
+            if (label.includes('close') || label.includes('back') || label.includes('exit')) {
+                btn.click(); // Natively trigger React's onClick
+                return;
+            }
+        }
+        
+        // 2. If we can't find a close button, try clicking the dark backdrop
+        // The backdrop is usually at the edges of the screen
+        const backdrop = document.elementFromPoint(10, 10);
+        if (backdrop && typeof backdrop.click === 'function') {
+            backdrop.click();
+        }
+        
+        // 3. The ultimate brutal fallback: Just rip the dialog out of the DOM.
+        // This is 100% guaranteed to remove the modal from the user's screen instantly
+        // even if React blocks the synthetic clicks.
+        setTimeout(() => {
+            if (document.body.contains(viewer)) {
+                viewer.remove();
+                document.body.style.overflow = ''; // Restore scrolling if React locked it
+            }
+        }, 100);
+    }
+}
+
+// Listen for Escape key from sandbox iframe
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.action === 'close_modal') {
+        closeGChatViewer();
+    }
+});
