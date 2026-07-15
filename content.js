@@ -141,24 +141,15 @@ observer.observe(document.body, { childList: true, subtree: true });
 replaceHtmlTextWithIframe();
 
 function closeGChatViewer() {
-    // 1. Try to find the close button using various selectors
-    const selectors = [
-        'div[role="dialog"] button[aria-label="Close"]',
-        'div[role="dialog"] [aria-label="Close viewer"]',
-        'button[aria-label="Close"]',
-        '[aria-label="Close viewer"]',
-        '[aria-label="Close"]',
-        '[data-tooltip="Close"]',
-        '[data-tooltip="Close viewer"]'
-    ];
-    for (const selector of selectors) {
-        const btn = document.querySelector(selector);
-        // Do NOT check offsetParent here, because fixed-position elements (like GChat's header)
-        // often return null for offsetParent even when they are fully visible and clickable!
-        if (btn) { 
-            btn.click();
-            return;
-        }
+    // 1. Simpler Approach: Click the native dark backdrop!
+    // GChat's native viewer always closes if you click the dark backdrop.
+    // The top-left corner (10, 10) is reliably the empty backdrop area.
+    const backdrop = document.elementFromPoint(10, 10);
+    if (backdrop) {
+        const eventInit = { bubbles: true, cancelable: true, clientX: 10, clientY: 10, view: window };
+        backdrop.dispatchEvent(new MouseEvent('mousedown', eventInit));
+        backdrop.dispatchEvent(new MouseEvent('mouseup', eventInit));
+        backdrop.dispatchEvent(new MouseEvent('click', eventInit));
     }
     
     // 2. Fallback: simulate Escape key on the document
