@@ -1,11 +1,11 @@
 // --- UI COMPONENTS ---
 
-function openInNewTab(text) {
+function openInNewTab(text, filename) {
     // Generate a unique ID for this report
     const id = 'html_report_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
     
     // Store it in local storage temporarily
-    chrome.storage.local.set({ [id]: text }, () => {
+    chrome.storage.local.set({ [id]: { text, filename } }, () => {
         const url = chrome.runtime.getURL(`viewer.html?id=${id}`);
         const newWin = window.open(url, '_blank');
         if (!newWin) {
@@ -95,7 +95,25 @@ function replaceHtmlTextWithIframe() {
             }
             
             // Assign functionality and link to the modal container for lifecycle management
-            openBtn.onclick = () => openInNewTab(text);
+            openBtn.onclick = () => {
+                // Try to find the actual filename in the dialog header
+                let filename = 'report.html';
+                const dialog = el.closest('div[role="dialog"]');
+                if (dialog) {
+                    const allTexts = Array.from(dialog.querySelectorAll('*')).map(n => n.innerText || '');
+                    for (const t of allTexts) {
+                        const lines = t.split('\n');
+                        for (const line of lines) {
+                            if (line.toLowerCase().endsWith('.html') || line.toLowerCase().endsWith('.htm')) {
+                                filename = line.trim();
+                                break;
+                            }
+                        }
+                        if (filename !== 'report.html') break;
+                    }
+                }
+                openInNewTab(text, filename);
+            };
             openBtn._linkedElement = el;
 
             // 2. Create the secure Iframe using our extension sandbox

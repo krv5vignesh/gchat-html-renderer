@@ -3,10 +3,25 @@ const id = params.get('id');
 
 if (id) {
     chrome.storage.local.get([id], (result) => {
-        const text = result[id];
-        if (text) {
-            // Clean up storage to save space
+        let text = null;
+        let filename = 'report.html';
+
+        if (result[id]) {
+            text = result[id].text;
+            filename = result[id].filename || 'report.html';
+            // Save to sessionStorage to survive tab reloads
+            sessionStorage.setItem('report_text', text);
+            sessionStorage.setItem('report_filename', filename);
+            // Clean up chrome storage
             chrome.storage.local.remove(id);
+        } else {
+            // Fallback to sessionStorage for page reloads
+            text = sessionStorage.getItem('report_text');
+            filename = sessionStorage.getItem('report_filename') || 'report.html';
+        }
+
+        if (text) {
+            document.title = filename; // Update tab title
             
             // Create the sandboxed iframe to securely render the HTML and bypass CSP
             const iframe = document.createElement('iframe');
@@ -45,7 +60,7 @@ if (id) {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'report.html';
+                a.download = filename;
                 a.click();
                 URL.revokeObjectURL(url);
             };
