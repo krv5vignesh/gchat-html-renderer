@@ -5,17 +5,18 @@ window.addEventListener('message', (event) => {
         document.write(event.data.html);
         document.close();
         
-        const handleEscape = (e) => {
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                window.parent.postMessage({ action: 'close_modal' }, '*');
-            }
-        };
-        
-        // Attach to window using capture phase
-        window.addEventListener('keydown', handleEscape, true);
-        
-        // Also attach to document just in case it doesn't bubble up to window in some contexts
-        document.addEventListener('keydown', handleEscape, true);
+        // The ultimate simple fix for the Escape key:
+        // By instantly yielding focus back to the parent window whenever the user clicks inside the iframe,
+        // we ensure that Google Chat's native Escape listener always catches the keypress.
+        // We exclude text inputs so they remain interactive.
+        window.addEventListener('mouseup', () => {
+            setTimeout(() => {
+                const active = document.activeElement;
+                const isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
+                if (!isInput) {
+                    window.parent.focus();
+                }
+            }, 0);
+        });
     }
 });

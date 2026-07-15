@@ -139,17 +139,3 @@ const observer = new MutationObserver(() => {
 
 observer.observe(document.body, { childList: true, subtree: true });
 replaceHtmlTextWithIframe();
-
-function closeGChatViewer() {
-    // Google Chat pushes a history state for ALL media viewers (images, text, pdfs).
-    // The previous '/photo/' check was likely failing for HTML files, causing it to fallback
-    // to the broken React click() method. Unconditionally going back in history is the correct native close.
-    window.history.back();
-}
-
-// Listen for Escape key from sandbox iframe
-window.addEventListener('message', (event) => {
-    if (event.data && event.data.action === 'close_modal') {
-        closeGChatViewer();
-    }
-});
