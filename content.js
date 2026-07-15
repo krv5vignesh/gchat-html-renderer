@@ -27,8 +27,11 @@ function replaceHtmlTextWithIframe() {
         
         const text = el.textContent.trim();
         
-        // Fast-fail string match
-        if (text.length > 50 && (text.startsWith('<!DOCTYPE html') || text.startsWith('<html') || text.startsWith('<!doctype html'))) {
+        // Fast-fail string match. We use includes() because many HTML files start with comments (<!-- -->)
+        const sample = text.substring(0, 500).toLowerCase();
+        const isHtml = sample.includes('<!doctype html') || sample.includes('<html') || sample.includes('<body') || sample.includes('<head');
+        
+        if (text.length > 20 && isHtml) {
             
             if (el.tagName === 'BODY' || el.tagName === 'HTML' || el.id === 'yDmH0d') continue;
             
