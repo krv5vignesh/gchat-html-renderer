@@ -20,6 +20,35 @@ if (id) {
             };
             
             document.body.appendChild(iframe);
+            
+            // Create Download Button
+            const downloadBtn = document.createElement('button');
+            downloadBtn.innerText = 'Save as HTML';
+            Object.assign(downloadBtn.style, {
+                position: 'fixed',
+                top: '15px',
+                right: '25px',
+                padding: '8px 16px',
+                backgroundColor: '#1a73e8',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontFamily: 'sans-serif',
+                fontSize: '14px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                zIndex: '9999'
+            });
+            downloadBtn.onclick = () => {
+                const blob = new Blob([text], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'report.html';
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+            document.body.appendChild(downloadBtn);
         } else {
             document.body.innerHTML = '<h3 style="padding: 20px; font-family: sans-serif; color: #333;">Report expired or not found. Please open it again from Google Chat.</h3>';
         }

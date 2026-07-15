@@ -4,5 +4,12 @@ window.addEventListener('message', (event) => {
         document.open();
         document.write(event.data.html);
         document.close();
+        
+        // Re-attach keydown listener after document rewrite
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                window.parent.postMessage({ action: 'close_modal' }, '*');
+            }
+        });
     }
 });

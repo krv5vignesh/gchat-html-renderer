@@ -43,9 +43,13 @@ function replaceHtmlTextWithIframe() {
             Object.assign(wrapper.style, {
                 display: 'flex',
                 flexDirection: 'column',
-                width: 'calc(100% - 48px)',
-                height: 'calc(100vh - 88px)',
-                margin: '64px 24px 24px 24px',
+                width: '90vw',
+                height: '90vh',
+                margin: '5vh auto',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                backgroundColor: 'white'
             });
 
             // 1. Create the Open in New Tab Button
@@ -131,3 +135,11 @@ const observer = new MutationObserver(() => {
 
 observer.observe(document.body, { childList: true, subtree: true });
 replaceHtmlTextWithIframe();
+
+// Listen for Escape key from sandbox iframe
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.action === 'close_modal') {
+        const closeBtn = document.querySelector('button[aria-label="Close"]');
+        if (closeBtn) closeBtn.click();
+    }
+});
