@@ -140,44 +140,5 @@ const observer = new MutationObserver(() => {
 observer.observe(document.body, { childList: true, subtree: true });
 replaceHtmlTextWithIframe();
 
-function closeGChatViewer() {
-    // 1. Try to cleanly click the Close button using a bulletproof selector
-    const dialogs = document.querySelectorAll('div[role="dialog"]');
-    const viewer = dialogs[dialogs.length - 1]; // The active viewer is usually the last dialog
-    
-    if (viewer) {
-        // Find ALL buttons inside the viewer
-        const buttons = viewer.querySelectorAll('button, div[role="button"]');
-        for (const btn of buttons) {
-            const label = (btn.getAttribute('aria-label') || '').toLowerCase();
-            if (label.includes('close') || label.includes('back') || label.includes('exit')) {
-                btn.click(); // Natively trigger React's onClick
-                return;
-            }
-        }
-        
-        // 2. If we can't find a close button, try clicking the dark backdrop
-        // The backdrop is usually at the edges of the screen
-        const backdrop = document.elementFromPoint(10, 10);
-        if (backdrop && typeof backdrop.click === 'function') {
-            backdrop.click();
-        }
-        
-        // 3. The ultimate brutal fallback: Just rip the dialog out of the DOM.
-        // This is 100% guaranteed to remove the modal from the user's screen instantly
-        // even if React blocks the synthetic clicks.
-        setTimeout(() => {
-            if (document.body.contains(viewer)) {
-                viewer.remove();
-                document.body.style.overflow = ''; // Restore scrolling if React locked it
-            }
-        }, 100);
-    }
-}
-
-// Listen for Escape key from sandbox iframe
-window.addEventListener('message', (event) => {
-    if (event.data && event.data.action === 'close_modal') {
-        closeGChatViewer();
-    }
-});
+// Clean up Escape key hacks as requested
+// The native viewer will handle Escape as long as focus is in the parent window.

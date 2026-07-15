@@ -4,18 +4,7 @@ window.addEventListener('message', (event) => {
         document.open();
         document.write(event.data.html);
         document.close();
-        
-        const handleEscape = (e) => {
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                window.parent.postMessage({ action: 'close_modal' }, '*');
-            }
-        };
-        
-        // Attach to window using capture phase
-        window.addEventListener('keydown', handleEscape, true);
-        
-        // Also attach to document just in case it doesn't bubble up to window in some contexts
-        document.addEventListener('keydown', handleEscape, true);
+        // Clean up: Escape key forwarding has been removed to keep the codebase simple.
+        // If focus is in the iframe, the user will have to click outside first to use Escape.
     }
 });
