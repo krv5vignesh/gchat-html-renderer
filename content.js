@@ -44,12 +44,20 @@ function replaceHtmlTextWithIframe() {
                 display: 'flex',
                 flexDirection: 'column',
                 width: '90vw',
-                height: '90vh',
-                margin: '5vh auto',
+                height: 'calc(100vh - 100px)',
+                margin: '76px auto 24px auto',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
                 borderRadius: '8px',
                 overflow: 'hidden',
                 backgroundColor: 'white'
+            });
+
+            // Close modal when clicking on the background (outside the wrapper)
+            el.addEventListener('click', (e) => {
+                if (!wrapper.contains(e.target)) {
+                    const closeBtn = document.querySelector('button[aria-label="Close"]');
+                    if (closeBtn) closeBtn.click();
+                }
             });
 
             // 1. Create the Open in New Tab Button

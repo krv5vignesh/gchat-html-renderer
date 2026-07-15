@@ -6,7 +6,7 @@ window.addEventListener('message', (event) => {
         document.close();
         
         // Re-attach keydown listener after document rewrite
-        window.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 window.parent.postMessage({ action: 'close_modal' }, '*');
             }
