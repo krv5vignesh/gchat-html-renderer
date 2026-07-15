@@ -147,7 +147,13 @@ replaceHtmlTextWithIframe();
 // Listen for Escape key from sandbox iframe
 window.addEventListener('message', (event) => {
     if (event.data && event.data.action === 'close_modal') {
-        const closeBtn = document.querySelector('button[aria-label="Close"]');
-        if (closeBtn) closeBtn.click();
+        // Try finding any element with aria-label="Close" (usually a span or div in GChat, not always a button)
+        const closeBtn = document.querySelector('[aria-label="Close"], [aria-label="Close viewer"]');
+        if (closeBtn) {
+            closeBtn.click();
+        } else {
+            // Fallback: simulate Escape key on the body
+            document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        }
     }
 });
