@@ -141,15 +141,10 @@ observer.observe(document.body, { childList: true, subtree: true });
 replaceHtmlTextWithIframe();
 
 function closeGChatViewer() {
-    // The ONLY reliable way to close GChat's viewer programmatically
-    // without running into React/Wiz 'isTrusted' event blocking is to use the History API.
-    if (window.location.href.includes('/photo/')) {
-        window.history.back();
-    } else {
-        // Fallback for edge cases where the URL didn't change
-        const closeBtn = document.querySelector('[aria-label="Close"], [aria-label="Close viewer"], [data-tooltip="Close"]');
-        if (closeBtn) closeBtn.click();
-    }
+    // Google Chat pushes a history state for ALL media viewers (images, text, pdfs).
+    // The previous '/photo/' check was likely failing for HTML files, causing it to fallback
+    // to the broken React click() method. Unconditionally going back in history is the correct native close.
+    window.history.back();
 }
 
 // Listen for Escape key from sandbox iframe
