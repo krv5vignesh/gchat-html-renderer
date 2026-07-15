@@ -38,26 +38,22 @@ function replaceHtmlTextWithIframe() {
             // Clear the raw HTML text
             el.innerHTML = '';
             
+            // Make the container transparent to clicks so background clicks pass through to GChat's native backdrop!
+            el.style.pointerEvents = 'none';
+            
             // Create a controlled wrapper for our UI
             const wrapper = document.createElement('div');
             Object.assign(wrapper.style, {
+                pointerEvents: 'auto', // Re-enable clicks for our modal
                 display: 'flex',
                 flexDirection: 'column',
                 width: '90vw',
-                height: 'calc(100vh - 100px)',
-                margin: '76px auto 24px auto',
+                height: 'calc(100vh - 120px)',
+                margin: '96px auto 24px auto',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
                 borderRadius: '8px',
                 overflow: 'hidden',
                 backgroundColor: 'white'
-            });
-
-            // Close modal when clicking on the background (outside the wrapper)
-            el.addEventListener('click', (e) => {
-                if (!wrapper.contains(e.target)) {
-                    const closeBtn = document.querySelector('button[aria-label="Close"]');
-                    if (closeBtn) closeBtn.click();
-                }
             });
 
             // 1. Create the Open in New Tab Button
@@ -144,16 +140,31 @@ const observer = new MutationObserver(() => {
 observer.observe(document.body, { childList: true, subtree: true });
 replaceHtmlTextWithIframe();
 
+function closeGChatViewer() {
+    // 1. Try to find the close button using various selectors
+    const selectors = [
+        'button[aria-label="Close"]',
+        '[aria-label="Close viewer"]',
+        '[aria-label="Close"]',
+        '[data-tooltip="Close"]',
+        '[data-tooltip="Close viewer"]'
+    ];
+    for (const selector of selectors) {
+        const btn = document.querySelector(selector);
+        // Ensure it's a visible element and actually a button-like element
+        if (btn && btn.offsetParent !== null) { 
+            btn.click();
+            return;
+        }
+    }
+    
+    // 2. Fallback: simulate Escape key on the document
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true }));
+}
+
 // Listen for Escape key from sandbox iframe
 window.addEventListener('message', (event) => {
     if (event.data && event.data.action === 'close_modal') {
-        // Try finding any element with aria-label="Close" (usually a span or div in GChat, not always a button)
-        const closeBtn = document.querySelector('[aria-label="Close"], [aria-label="Close viewer"]');
-        if (closeBtn) {
-            closeBtn.click();
-        } else {
-            // Fallback: simulate Escape key on the body
-            document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-        }
+        closeGChatViewer();
     }
 });
