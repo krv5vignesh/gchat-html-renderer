@@ -143,6 +143,8 @@ replaceHtmlTextWithIframe();
 function closeGChatViewer() {
     // 1. Try to find the close button using various selectors
     const selectors = [
+        'div[role="dialog"] button[aria-label="Close"]',
+        'div[role="dialog"] [aria-label="Close viewer"]',
         'button[aria-label="Close"]',
         '[aria-label="Close viewer"]',
         '[aria-label="Close"]',
@@ -151,8 +153,9 @@ function closeGChatViewer() {
     ];
     for (const selector of selectors) {
         const btn = document.querySelector(selector);
-        // Ensure it's a visible element and actually a button-like element
-        if (btn && btn.offsetParent !== null) { 
+        // Do NOT check offsetParent here, because fixed-position elements (like GChat's header)
+        // often return null for offsetParent even when they are fully visible and clickable!
+        if (btn) { 
             btn.click();
             return;
         }

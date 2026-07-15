@@ -5,11 +5,13 @@ window.addEventListener('message', (event) => {
         document.write(event.data.html);
         document.close();
         
-        // Use window with capture phase (true) to prevent inner elements from stopping propagation
-        window.addEventListener('keydown', (e) => {
+        // Use window and document with capture phase to ensure it's caught
+        const handleEscape = (e) => {
             if (e.key === 'Escape') {
                 window.parent.postMessage({ action: 'close_modal' }, '*');
             }
-        }, true);
+        };
+        window.addEventListener('keydown', handleEscape, true);
+        document.addEventListener('keydown', handleEscape, true);
     }
 });
