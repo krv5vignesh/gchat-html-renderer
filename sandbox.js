@@ -1,10 +1,26 @@
 window.addEventListener('message', (event) => {
     // Only process our specific message type
-    if (event.data && event.data.type === 'RENDER_HTML') {
+    if (!event.data || event.data.type !== 'RENDER_HTML') return;
+
+    const html = event.data.html;
+
+    // Chrome: true sandboxed page (opaque origin) -> render directly.
+    // Firefox: no "sandbox" manifest key, so use a sandboxed <iframe srcdoc> instead.
+    if (window.origin === 'null') {
         document.open();
-        document.write(event.data.html);
+        document.write(html);
         document.close();
-        // Clean up: Escape key forwarding has been removed to keep the codebase simple.
-        // If focus is in the iframe, the user will have to click outside first to use Escape.
+        return;
     }
+
+    const frame = document.createElement('iframe');
+    frame.setAttribute(
+        'sandbox',
+        'allow-scripts allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-downloads'
+    );
+    frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;margin:0;';
+    frame.srcdoc = html;
+
+    document.body.innerHTML = '';
+    document.body.appendChild(frame);
 });
