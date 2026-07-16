@@ -2,7 +2,7 @@ window.addEventListener('message', (event) => {
     // Only process our specific message type
     if (!event.data || event.data.type !== 'RENDER_HTML') return;
 
-    const html = event.data.html;
+    const html = event.data.html || '';
 
     // Chrome: true sandboxed page (opaque origin) -> render directly.
     // Firefox: no "sandbox" manifest key, so use a sandboxed <iframe srcdoc> instead.
@@ -21,6 +21,5 @@ window.addEventListener('message', (event) => {
     frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:none;margin:0;';
     frame.srcdoc = html;
 
-    document.body.innerHTML = '';
-    document.body.appendChild(frame);
+    document.body.replaceChildren(frame);
 });
